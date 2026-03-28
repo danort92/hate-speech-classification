@@ -55,18 +55,18 @@ Each model is evaluated in two configurations:
 |-------------------------|---------|--------------|-----------|----------|
 | DistilBERT — Baseline   | 0.769   | 0.538        | 0.750     | 0.686    |
 | DistilBERT — Improved   | —       | —            | —         | —        |
-| hateBERT — Baseline     | —       | —            | —         | —        |
-| hateBERT — Improved     | —       | —            | —         | —        |
+| hateBERT — Baseline     | 0.768   | 0.545        | 0.717     | 0.677    |
+| hateBERT — Improved     | —       | —            | —         | 0.676    |
 
 ### Robustness to Obfuscation
 
 | Condition   | DistilBERT Baseline | DistilBERT Improved | hateBERT Baseline | hateBERT Improved |
 |-------------|---------------------|---------------------|-------------------|-------------------|
-| Clean       | 0.686               | —                   | —                 | —                 |
-| Leet-speak  | 0.347 (−0.339)      | —                   | —                 | —                 |
-| Punctuation | 0.586 (−0.100)      | —                   | —                 | —                 |
-| Char repeat | 0.640 (−0.046)      | —                   | —                 | —                 |
-| Combined    | 0.357 (−0.329)      | —                   | —                 | —                 |
+| Clean       | 0.686               | —                   | 0.677             | 0.676             |
+| Leet-speak  | 0.347 (−0.339)      | —                   | 0.425 (−0.252)    | 0.382 (−0.294)    |
+| Punctuation | 0.586 (−0.100)      | —                   | 0.600 (−0.077)    | 0.412 (−0.264)    |
+| Char repeat | 0.640 (−0.046)      | —                   | 0.609 (−0.068)    | 0.468 (−0.208)    |
+| Combined    | 0.357 (−0.329)      | —                   | 0.415 (−0.262)    | 0.352 (−0.324)    |
 
 ## How to Run
 
@@ -129,11 +129,11 @@ Each notebook is split into sequential sections:
 
 ## Key Findings
 
-- DistilBERT achieves **macro F1 0.686** on the clean test set
-- `offensive` is the hardest class (F1 0.538) due to semantic overlap with both `hate` and `normal`
-- **Leet-speak causes a −0.34 F1 drop** — the model cannot recognise key offensive words when characters are substituted (e.g. `h4t3`)
-- The improved model uses adversarial augmentation during training to close this gap
-- 31% of test posts that were correctly classified become misclassified as `normal` after combined obfuscation
+- hateBERT achieves **macro F1 0.677** on the clean test set; `offensive` is the hardest class (F1 0.545) due to semantic overlap with both `hate` and `normal`
+- **Leet-speak is the most damaging obfuscation** — it causes a −0.252 F1 drop on the baseline, as the model cannot recognise key offensive words when characters are substituted (e.g. `h4t3`)
+- The improved model (class weights + adversarial augmentation) **does not improve robustness** — it actually degrades performance on punctuation (−0.174) and char repeat (−0.173) compared to baseline, while clean F1 stays flat (0.676 vs 0.677)
+- This is caused by a **train/val distribution mismatch**: early stopping selects the checkpoint with the best *clean* validation loss, not the most robust one (see Analysis & Limitations)
+- Combined obfuscation remains the hardest condition, dropping F1 from 0.677 to 0.415 (baseline) and 0.352 (improved)
 
 ## Analysis & Limitations
 
