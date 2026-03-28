@@ -60,54 +60,54 @@ Fine-tuning DistilBERT on the HateXplain dataset for 3-class hate speech detecti
 
 ## How to Run
 
-> **Prerequisiti:** Python 3.9+ e una connessione internet (il dataset viene scaricato automaticamente).
-> Una GPU è consigliata per il training (~15 min su GPU, ~2 h su CPU). Google Colab offre una GPU gratuita.
+> **Prerequisites:** Python 3.9+ and an internet connection (the dataset is downloaded automatically).
+> A GPU is recommended for training (~15 min on GPU, ~2 h on CPU). Google Colab provides a free GPU.
 
-### Opzione 1 — Google Colab (consigliato)
+### Option 1 — Google Colab (recommended)
 
-1. Apri [Google Colab](https://colab.research.google.com/)
-2. Seleziona **File → Apri notebook → GitHub** e incolla:
+1. Open [Google Colab](https://colab.research.google.com/)
+2. Go to **File → Open notebook → GitHub** and paste:
    ```
    https://github.com/danort92/hate-speech-classification
    ```
-3. Seleziona `notebooks/hate_speech_pipeline.ipynb`
-4. Abilita la GPU: **Runtime → Cambia tipo di runtime → T4 GPU**
-5. Esegui tutte le celle in ordine: **Runtime → Esegui tutto**
+3. Select `notebooks/hate_speech_pipeline.ipynb`
+4. Enable GPU: **Runtime → Change runtime type → T4 GPU**
+5. Run all cells in order: **Runtime → Run all**
 
-> **Nota:** la prima cella installa le dipendenze automaticamente. Dopo l'installazione, Colab potrebbe chiederti di riavviare il runtime — conferma e poi esegui nuovamente tutte le celle.
+> **Note:** the first cell installs dependencies automatically. After installation, Colab may ask you to restart the runtime — confirm and then run all cells again.
 
-### Opzione 2 — In locale
+### Option 2 — Local setup
 
 ```bash
-# 1. Clona la repository
+# 1. Clone the repository
 git clone https://github.com/danort92/hate-speech-classification.git
 cd hate-speech-classification
 
-# 2. Crea un ambiente virtuale (consigliato)
+# 2. Create a virtual environment (recommended)
 python3 -m venv venv
-source venv/bin/activate        # su Windows: venv\Scripts\activate
+source venv/bin/activate        # on Windows: venv\Scripts\activate
 
-# 3. Installa le dipendenze
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Avvia Jupyter e apri il notebook
+# 4. Launch Jupyter and open the notebook
 jupyter notebook notebooks/hate_speech_pipeline.ipynb
 ```
 
-### Cosa succede quando esegui il notebook
+### What happens when you run the notebook
 
-Il notebook è suddiviso in sezioni sequenziali:
+The notebook is split into sequential sections:
 
-| Sezione | Cosa fa | Tempo stimato |
-|---------|---------|---------------|
-| **Configurazione** | Imposta iperparametri (modello, batch size, lr) | istantaneo |
-| **Download e EDA** | Scarica HateXplain, analisi esplorativa con grafici | ~1 min |
-| **Preprocessing** | Pulizia testo, tokenizzazione, creazione dei DataLoader | ~1 min |
-| **Training baseline** | Fine-tuning DistilBERT (3 epoche) | ~10 min (GPU) |
-| **Training improved** | Modello con class weights + data augmentation | ~15 min (GPU) |
-| **Robustness eval** | Test su testo offuscato (leet-speak, punteggiatura, ecc.) | ~3 min |
+| Section | What it does | Estimated time |
+|---------|--------------|----------------|
+| **Configuration** | Sets hyperparameters (model, batch size, lr) | instant |
+| **Download & EDA** | Downloads HateXplain, exploratory analysis with plots | ~1 min |
+| **Preprocessing** | Text cleaning, tokenization, DataLoader creation | ~1 min |
+| **Baseline training** | Fine-tunes DistilBERT (3 epochs) | ~10 min (GPU) |
+| **Improved training** | Model with class weights + data augmentation | ~15 min (GPU) |
+| **Robustness eval** | Tests on obfuscated text (leet-speak, punctuation, etc.) | ~3 min |
 
-> **Tip:** se vuoi solo vedere i risultati senza riaddestrare, i grafici e le metriche sono già visibili nelle celle di output del notebook su GitHub.
+> **Tip:** if you just want to see the results without retraining, the plots and metrics are already visible in the notebook output cells on GitHub.
 
 ## Key Findings
 
