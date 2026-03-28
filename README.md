@@ -51,18 +51,18 @@ Each model is evaluated in two configurations:
 |-------------------------|---------|--------------|-----------|----------|
 | DistilBERT — Baseline   | 0.765   | 0.518        | 0.748     | 0.677    |
 | DistilBERT — Improved   | 0.770   | 0.461        | 0.742     | 0.658    |
-| hateBERT — Baseline     | —       | —            | —         | —        |
-| hateBERT — Improved     | —       | —            | —         | —        |
+| hateBERT — Baseline     | 0.772   | 0.521        | 0.743     | 0.679    |
+| hateBERT — Improved     | 0.764   | 0.479        | 0.754     | 0.666    |
 
 ### Robustness to Obfuscation
 
 | Condition   | DistilBERT Baseline | DistilBERT Improved | hateBERT Baseline | hateBERT Improved |
 |-------------|---------------------|---------------------|-------------------|-------------------|
-| Clean       | 0.677               | 0.658               | —                 | —                 |
-| Leet-speak  | 0.365 (−0.312)      | 0.379 (−0.279)      | —                 | —                 |
-| Punctuation | 0.580 (−0.097)      | 0.503 (−0.155)      | —                 | —                 |
-| Char repeat | 0.620 (−0.057)      | 0.635 (−0.023)      | —                 | —                 |
-| Combined    | 0.371 (−0.306)      | 0.337 (−0.321)      | —                 | —                 |
+| Clean       | 0.677               | 0.658               | 0.679             | 0.666             |
+| Leet-speak  | 0.365 (−0.312)      | 0.379 (−0.279)      | 0.398 (−0.281)    | 0.382 (−0.297)    |
+| Punctuation | 0.580 (−0.097)      | 0.503 (−0.155)      | 0.607 (−0.072)    | 0.468 (−0.211)    |
+| Char repeat | 0.620 (−0.057)      | 0.635 (−0.023)      | 0.657 (−0.022)    | 0.649 (−0.030)    |
+| Combined    | 0.371 (−0.306)      | 0.337 (−0.321)      | 0.395 (−0.284)    | 0.361 (−0.318)    |
 
 ## How to Run
 
@@ -120,11 +120,12 @@ Each notebook is split into sequential sections:
 
 ## Key Findings
 
-- DistilBERT baseline achieves **macro F1 0.677** on the clean test set; `offensive` is the hardest class (F1 0.518) due to semantic overlap with both `hate` and `normal`
-- **Leet-speak is the most damaging single obfuscation** — it causes a −0.312 F1 drop on the baseline, as the model cannot recognise key offensive words when characters are substituted (e.g. `h4t3`)
-- The improved model (class weights + adversarial augmentation) **does not improve robustness** — it degrades clean F1 (0.658 vs 0.677) and worsens punctuation robustness (−0.077), while gains on leet-speak (+0.014) and char repeat (+0.015) are negligible
-- The improved model **collapses the offensive class** (F1 drops from 0.518 to 0.461): obfuscated training examples strip away offensive keywords, teaching the model to default to `normal` when in doubt
-- Combined obfuscation remains the hardest condition, dropping F1 from 0.677 to 0.371 (baseline) and 0.337 (improved)
+- **hateBERT baseline is the best overall model** (macro F1 0.679), outperforming DistilBERT (0.677) thanks to pre-training on abusive Reddit content
+- `offensive` is the hardest class for both models (F1 ~0.52) due to semantic overlap with both `hate` and `normal`
+- **hateBERT is more robust to obfuscation across all conditions** — leet-speak drop is −0.281 vs −0.312 for DistilBERT, punctuation −0.072 vs −0.097, char repeat −0.022 vs −0.057. Domain-specific pre-training provides a stronger prior that survives surface-level text manipulation
+- **Leet-speak and combined obfuscation are the most damaging**, causing ~0.28–0.31 F1 drops on both models — the tokenizer cannot recognise key offensive words when characters are substituted (e.g. `h4t3`)
+- The improved models (class weights + adversarial augmentation) **do not improve robustness on either model** — they degrade clean F1 and collapse the offensive class (recall drops from ~0.50 to ~0.39), as obfuscated training examples teach the model to default to `normal` when keywords are unrecognisable
+- **Threshold tuning on the baseline** (no re-training) boosts DistilBERT hate recall from 0.860 to 0.904 with only −0.046 precision cost — a more effective strategy than adversarial augmentation for prioritising recall
 
 ## Analysis & Limitations
 
