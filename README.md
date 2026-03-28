@@ -132,7 +132,13 @@ Each notebook is split into sequential sections:
 - **hateBERT is more robust than DistilBERT** on all conditions — domain-specific pre-training provides a stronger prior that survives surface-level text manipulation
 - For transformers, the improved models (class weights + adversarial augmentation) **degrade robustness** — they collapse the offensive class (recall ~0.50 → ~0.39) as obfuscated examples teach the model to default to `normal`
 - For TF-IDF + LR, balanced class weights **do improve robustness** across all conditions (+0.01–0.014), showing that the augmentation strategy, not class weights, is the problem with transformer improved models
-- **Threshold tuning on the baseline** (no re-training) boosts DistilBERT hate recall from 0.860 to 0.904 with only −0.046 precision cost
+- **Threshold tuning on the baseline** (no re-training) boosts hate recall across all models:
+
+| Model | Default Recall | Tuned Recall | Threshold | Precision Cost | Macro F1 Cost |
+|-------|---------------|-------------|-----------|----------------|---------------|
+| TF-IDF + LR | 0.785 | 0.904 | 0.225 | −0.108 | −0.041 |
+| DistilBERT | 0.860 | 0.904 | 0.225 | −0.046 | −0.020 |
+| hateBERT | 0.828 | 0.904 | 0.150 | −0.098 | −0.035 |
 
 ## Analysis & Limitations
 
