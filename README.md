@@ -53,8 +53,8 @@ Each model is evaluated in two configurations:
 
 | Model                   | Hate F1 | Offensive F1 | Normal F1 | Macro F1 |
 |-------------------------|---------|--------------|-----------|----------|
-| DistilBERT — Baseline   | 0.768   | 0.545        | 0.717     | 0.677    |
-| DistilBERT — Improved   | —       | —            | —         | 0.676    |
+| DistilBERT — Baseline   | —       | —            | —         | —        |
+| DistilBERT — Improved   | —       | —            | —         | —        |
 | hateBERT — Baseline     | —       | —            | —         | —        |
 | hateBERT — Improved     | —       | —            | —         | —        |
 
@@ -62,11 +62,11 @@ Each model is evaluated in two configurations:
 
 | Condition   | DistilBERT Baseline | DistilBERT Improved | hateBERT Baseline | hateBERT Improved |
 |-------------|---------------------|---------------------|-------------------|-------------------|
-| Clean       | 0.677               | 0.676               | —                 | —                 |
-| Leet-speak  | 0.425 (−0.252)      | 0.382 (−0.294)      | —                 | —                 |
-| Punctuation | 0.600 (−0.077)      | 0.412 (−0.264)      | —                 | —                 |
-| Char repeat | 0.609 (−0.068)      | 0.468 (−0.208)      | —                 | —                 |
-| Combined    | 0.415 (−0.262)      | 0.352 (−0.324)      | —                 | —                 |
+| Clean       | —                   | —                   | —                 | —                 |
+| Leet-speak  | —                   | —                   | —                 | —                 |
+| Punctuation | —                   | —                   | —                 | —                 |
+| Char repeat | —                   | —                   | —                 | —                 |
+| Combined    | —                   | —                   | —                 | —                 |
 
 ## How to Run
 
@@ -75,21 +75,16 @@ Each model is evaluated in two configurations:
 
 There are two independent notebooks — one per model. Each is self-contained and runs the full pipeline (EDA → training → robustness evaluation).
 
-| Notebook | Model | Estimated time on Colab free (T4 GPU) |
-|----------|-------|---------------------------------------|
-| `notebook_distilbert.ipynb` | DistilBERT | ~30 min |
-| `notebook_hatebert.ipynb` | hateBERT | ~45 min |
+| Notebook | Model | Estimated time (T4 GPU) | Open in Colab |
+|----------|-------|-------------------------|---------------|
+| `notebook_distilbert.ipynb` | DistilBERT | ~30 min | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/danort92/hate-speech-classification/blob/main/notebooks/notebook_distilbert.ipynb) |
+| `notebook_hatebert.ipynb` | hateBERT | ~45 min | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/danort92/hate-speech-classification/blob/main/notebooks/notebook_hatebert.ipynb) |
 
 ### Option 1 — Google Colab (recommended)
 
-1. Open [Google Colab](https://colab.research.google.com/)
-2. Go to **File → Open notebook → GitHub** and paste:
-   ```
-   https://github.com/danort92/hate-speech-classification
-   ```
-3. Select the notebook you want to run (`notebook_distilbert.ipynb` or `notebook_hatebert.ipynb`)
-4. Enable GPU: **Runtime → Change runtime type → T4 GPU**
-5. Run all cells in order: **Runtime → Run all**
+1. Click one of the **Open in Colab** badges above
+2. Enable GPU: **Runtime → Change runtime type → T4 GPU**
+3. Run all cells in order: **Runtime → Run all**
 
 > **Note:** the first cell installs dependencies automatically. After installation, Colab may ask you to restart the runtime — confirm and then run all cells again.
 
