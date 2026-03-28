@@ -35,28 +35,37 @@ Fine-tuning DistilBERT on the HateXplain dataset for 3-class hate speech detecti
 
 ## Model
 
-- **Architecture:** DistilBERT (`distilbert-base-uncased`) with a 3-class classification head
+Two models are compared:
+
+| Model | Base | Notes |
+|-------|------|-------|
+| **DistilBERT** | `distilbert-base-uncased` | General-purpose, lightweight |
+| **hateBERT** | `GroNLP/hateBERT` | BERT re-trained on abusive Reddit content |
+
+Each model is evaluated in two configurations:
 - **Baseline:** 3 epochs, AdamW (lr=2e-5), linear scheduler with 10% warmup
-- **Improved:** 4 epochs + class weights (balanced) + adversarial augmentation on hate/offensive posts
+- **Improved:** 4 epochs + balanced class weights + adversarial augmentation on hate/offensive posts
 
 ## Results
 
 ### Clean Test Set
 
-| Model    | Hate F1 | Offensive F1 | Normal F1 | Macro F1 |
-|----------|---------|--------------|-----------|----------|
-| Baseline | 0.769   | 0.538        | 0.750     | 0.686    |
-| Improved | —       | —            | —         | —        |
+| Model                   | Hate F1 | Offensive F1 | Normal F1 | Macro F1 |
+|-------------------------|---------|--------------|-----------|----------|
+| DistilBERT — Baseline   | 0.769   | 0.538        | 0.750     | 0.686    |
+| DistilBERT — Improved   | —       | —            | —         | —        |
+| hateBERT — Baseline     | —       | —            | —         | —        |
+| hateBERT — Improved     | —       | —            | —         | —        |
 
-### Robustness to Obfuscation (Baseline)
+### Robustness to Obfuscation
 
-| Condition   | Macro F1 | Drop    |
-|-------------|----------|---------|
-| Clean       | 0.686    | —       |
-| Leet-speak  | 0.347    | −0.339  |
-| Punctuation | 0.586    | −0.100  |
-| Char repeat | 0.640    | −0.046  |
-| Combined    | 0.357    | −0.329  |
+| Condition   | DistilBERT Baseline | DistilBERT Improved | hateBERT Baseline | hateBERT Improved |
+|-------------|---------------------|---------------------|-------------------|-------------------|
+| Clean       | 0.686               | —                   | —                 | —                 |
+| Leet-speak  | 0.347 (−0.339)      | —                   | —                 | —                 |
+| Punctuation | 0.586 (−0.100)      | —                   | —                 | —                 |
+| Char repeat | 0.640 (−0.046)      | —                   | —                 | —                 |
+| Combined    | 0.357 (−0.329)      | —                   | —                 | —                 |
 
 ## How to Run
 
