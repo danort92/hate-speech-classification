@@ -49,8 +49,8 @@ Each model is evaluated in two configurations:
 
 | Model                   | Hate F1 | Offensive F1 | Normal F1 | Macro F1 |
 |-------------------------|---------|--------------|-----------|----------|
-| DistilBERT — Baseline   | —       | —            | —         | —        |
-| DistilBERT — Improved   | —       | —            | —         | —        |
+| DistilBERT — Baseline   | 0.765   | 0.518        | 0.748     | 0.677    |
+| DistilBERT — Improved   | 0.770   | 0.461        | 0.742     | 0.658    |
 | hateBERT — Baseline     | —       | —            | —         | —        |
 | hateBERT — Improved     | —       | —            | —         | —        |
 
@@ -58,11 +58,11 @@ Each model is evaluated in two configurations:
 
 | Condition   | DistilBERT Baseline | DistilBERT Improved | hateBERT Baseline | hateBERT Improved |
 |-------------|---------------------|---------------------|-------------------|-------------------|
-| Clean       | —                   | —                   | —                 | —                 |
-| Leet-speak  | —                   | —                   | —                 | —                 |
-| Punctuation | —                   | —                   | —                 | —                 |
-| Char repeat | —                   | —                   | —                 | —                 |
-| Combined    | —                   | —                   | —                 | —                 |
+| Clean       | 0.677               | 0.658               | —                 | —                 |
+| Leet-speak  | 0.365 (−0.312)      | 0.379 (−0.279)      | —                 | —                 |
+| Punctuation | 0.580 (−0.097)      | 0.503 (−0.155)      | —                 | —                 |
+| Char repeat | 0.620 (−0.057)      | 0.635 (−0.023)      | —                 | —                 |
+| Combined    | 0.371 (−0.306)      | 0.337 (−0.321)      | —                 | —                 |
 
 ## How to Run
 
@@ -120,11 +120,11 @@ Each notebook is split into sequential sections:
 
 ## Key Findings
 
-- DistilBERT achieves **macro F1 0.677** on the clean test set; `offensive` is the hardest class (F1 0.545) due to semantic overlap with both `hate` and `normal`
-- **Leet-speak is the most damaging obfuscation** — it causes a −0.252 F1 drop on the baseline, as the model cannot recognise key offensive words when characters are substituted (e.g. `h4t3`)
-- The improved model (class weights + adversarial augmentation) **does not improve robustness** — it actually degrades performance on punctuation (−0.174) and char repeat (−0.173) compared to baseline, while clean F1 stays flat (0.676 vs 0.677)
-- This is caused by a **train/val distribution mismatch**: early stopping selects the checkpoint with the best *clean* validation loss, not the most robust one (see Analysis & Limitations)
-- Combined obfuscation remains the hardest condition, dropping F1 from 0.677 to 0.415 (baseline) and 0.352 (improved)
+- DistilBERT baseline achieves **macro F1 0.677** on the clean test set; `offensive` is the hardest class (F1 0.518) due to semantic overlap with both `hate` and `normal`
+- **Leet-speak is the most damaging single obfuscation** — it causes a −0.312 F1 drop on the baseline, as the model cannot recognise key offensive words when characters are substituted (e.g. `h4t3`)
+- The improved model (class weights + adversarial augmentation) **does not improve robustness** — it degrades clean F1 (0.658 vs 0.677) and worsens punctuation robustness (−0.077), while gains on leet-speak (+0.014) and char repeat (+0.015) are negligible
+- The improved model **collapses the offensive class** (F1 drops from 0.518 to 0.461): obfuscated training examples strip away offensive keywords, teaching the model to default to `normal` when in doubt
+- Combined obfuscation remains the hardest condition, dropping F1 from 0.677 to 0.371 (baseline) and 0.337 (improved)
 
 ## Analysis & Limitations
 
