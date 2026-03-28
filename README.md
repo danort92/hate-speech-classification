@@ -134,8 +134,8 @@ Each notebook is split into sequential sections:
 - For TF-IDF + LR, balanced class weights **do improve robustness** across all conditions (+0.01–0.014), showing that the augmentation strategy, not class weights, is the problem with transformer improved models
 - **Threshold tuning on the baseline** (no re-training) boosts hate recall across all models:
 
-| Model | Default Recall | Tuned Recall | Threshold | Precision Cost | Macro F1 Cost |
-|-------|---------------|-------------|-----------|----------------|---------------|
+| Model | Default Hate Recall | Tuned Hate Recall (≥0.90) | Threshold Used | Hate Precision Cost | Macro F1 Cost |
+|-------|--------------------|-----------------------------|----------------|---------------------|---------------|
 | TF-IDF + LR | 0.785 | 0.904 | 0.225 | −0.108 | −0.041 |
 | DistilBERT | 0.860 | 0.904 | 0.225 | −0.046 | −0.020 |
 | hateBERT | 0.828 | 0.904 | 0.150 | −0.098 | −0.035 |
