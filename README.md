@@ -12,15 +12,11 @@ Fine-tuning DistilBERT and hateBERT on the HateXplain dataset for 3-class hate s
 ├── notebooks/
 │   ├── notebook_distilbert.ipynb    # full pipeline with DistilBERT
 │   └── notebook_hatebert.ipynb      # full pipeline with hateBERT
-├── src/
-│   ├── dataset.py        # HateXplain download and majority-vote labelling
-│   ├── preprocessing.py  # text cleaning and PyTorch HateDataset class
-│   ├── model.py          # training loop, evaluation, class weights
-│   ├── obfuscation.py    # leet-speak, punctuation insertion, char repeat
-│   └── evaluation.py     # metrics, confusion matrix, robustness plots
 ├── requirements.txt
 └── README.md
 ```
+
+Each notebook is fully self-contained — all code (dataset download, preprocessing, training, evaluation, obfuscation, plotting) is defined inline so it runs directly on Google Colab without additional setup.
 
 ## Dataset
 
