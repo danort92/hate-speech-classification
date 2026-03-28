@@ -60,24 +60,54 @@ Fine-tuning DistilBERT on the HateXplain dataset for 3-class hate speech detecti
 
 ## How to Run
 
-### On Google Colab
+> **Prerequisiti:** Python 3.9+ e una connessione internet (il dataset viene scaricato automaticamente).
+> Una GPU è consigliata per il training (~15 min su GPU, ~2 h su CPU). Google Colab offre una GPU gratuita.
 
-```python
-!git clone https://github.com/danort92/hate-speech-classification.git
-%cd hate-speech-classification
-!pip install -r requirements.txt
-```
+### Opzione 1 — Google Colab (consigliato)
 
-Then open `notebooks/hate_speech_pipeline.ipynb`.
+1. Apri [Google Colab](https://colab.research.google.com/)
+2. Seleziona **File → Apri notebook → GitHub** e incolla:
+   ```
+   https://github.com/danort92/hate-speech-classification
+   ```
+3. Seleziona `notebooks/hate_speech_pipeline.ipynb`
+4. Abilita la GPU: **Runtime → Cambia tipo di runtime → T4 GPU**
+5. Esegui tutte le celle in ordine: **Runtime → Esegui tutto**
 
-### Locally
+> **Nota:** la prima cella installa le dipendenze automaticamente. Dopo l'installazione, Colab potrebbe chiederti di riavviare il runtime — conferma e poi esegui nuovamente tutte le celle.
+
+### Opzione 2 — In locale
 
 ```bash
+# 1. Clona la repository
 git clone https://github.com/danort92/hate-speech-classification.git
 cd hate-speech-classification
+
+# 2. Crea un ambiente virtuale (consigliato)
+python3 -m venv venv
+source venv/bin/activate        # su Windows: venv\Scripts\activate
+
+# 3. Installa le dipendenze
 pip install -r requirements.txt
+
+# 4. Avvia Jupyter e apri il notebook
 jupyter notebook notebooks/hate_speech_pipeline.ipynb
 ```
+
+### Cosa succede quando esegui il notebook
+
+Il notebook è suddiviso in sezioni sequenziali:
+
+| Sezione | Cosa fa | Tempo stimato |
+|---------|---------|---------------|
+| **Configurazione** | Imposta iperparametri (modello, batch size, lr) | istantaneo |
+| **Download e EDA** | Scarica HateXplain, analisi esplorativa con grafici | ~1 min |
+| **Preprocessing** | Pulizia testo, tokenizzazione, creazione dei DataLoader | ~1 min |
+| **Training baseline** | Fine-tuning DistilBERT (3 epoche) | ~10 min (GPU) |
+| **Training improved** | Modello con class weights + data augmentation | ~15 min (GPU) |
+| **Robustness eval** | Test su testo offuscato (leet-speak, punteggiatura, ecc.) | ~3 min |
+
+> **Tip:** se vuoi solo vedere i risultati senza riaddestrare, i grafici e le metriche sono già visibili nelle celle di output del notebook su GitHub.
 
 ## Key Findings
 
