@@ -1,6 +1,6 @@
 # Hate Speech Classification with Robustness Testing
 
-Fine-tuning DistilBERT on the HateXplain dataset for 3-class hate speech detection, with robustness evaluation against common text obfuscation tactics.
+Fine-tuning DistilBERT and hateBERT on the HateXplain dataset for 3-class hate speech detection, with robustness evaluation against common text obfuscation tactics.
 
 **MSc Responsible AI — NLP Project | OPIT University**
 
@@ -10,7 +10,8 @@ Fine-tuning DistilBERT on the HateXplain dataset for 3-class hate speech detecti
 
 ```
 ├── notebooks/
-│   └── hate_speech_pipeline.ipynb   # full pipeline (EDA → training → evaluation)
+│   ├── notebook_distilbert.ipynb    # full pipeline with DistilBERT
+│   └── notebook_hatebert.ipynb      # full pipeline with hateBERT
 ├── src/
 │   ├── dataset.py        # HateXplain download and majority-vote labelling
 │   ├── preprocessing.py  # text cleaning and PyTorch HateDataset class
@@ -72,6 +73,13 @@ Each model is evaluated in two configurations:
 > **Prerequisites:** Python 3.9+ and an internet connection (the dataset is downloaded automatically).
 > A GPU is recommended for training (~15 min on GPU, ~2 h on CPU). Google Colab provides a free GPU.
 
+There are two independent notebooks — one per model. Each is self-contained and runs the full pipeline (EDA → training → robustness evaluation).
+
+| Notebook | Model | Estimated time on Colab free (T4 GPU) |
+|----------|-------|---------------------------------------|
+| `notebook_distilbert.ipynb` | DistilBERT | ~30 min |
+| `notebook_hatebert.ipynb` | hateBERT | ~45 min |
+
 ### Option 1 — Google Colab (recommended)
 
 1. Open [Google Colab](https://colab.research.google.com/)
@@ -79,7 +87,7 @@ Each model is evaluated in two configurations:
    ```
    https://github.com/danort92/hate-speech-classification
    ```
-3. Select `notebooks/hate_speech_pipeline.ipynb`
+3. Select the notebook you want to run (`notebook_distilbert.ipynb` or `notebook_hatebert.ipynb`)
 4. Enable GPU: **Runtime → Change runtime type → T4 GPU**
 5. Run all cells in order: **Runtime → Run all**
 
@@ -99,21 +107,22 @@ source venv/bin/activate        # on Windows: venv\Scripts\activate
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Launch Jupyter and open the notebook
-jupyter notebook notebooks/hate_speech_pipeline.ipynb
+# 4. Launch Jupyter and open a notebook
+jupyter notebook notebooks/notebook_distilbert.ipynb
+# or: jupyter notebook notebooks/notebook_hatebert.ipynb
 ```
 
-### What happens when you run the notebook
+### What happens when you run a notebook
 
-The notebook is split into sequential sections:
+Each notebook is split into sequential sections:
 
 | Section | What it does | Estimated time |
 |---------|--------------|----------------|
 | **Configuration** | Sets hyperparameters (model, batch size, lr) | instant |
 | **Download & EDA** | Downloads HateXplain, exploratory analysis with plots | ~1 min |
 | **Preprocessing** | Text cleaning, tokenization, DataLoader creation | ~1 min |
-| **Baseline training** | Fine-tunes DistilBERT (3 epochs) | ~10 min (GPU) |
-| **Improved training** | Model with class weights + data augmentation | ~15 min (GPU) |
+| **Baseline training** | Fine-tunes the model (early stopping) | ~10–20 min (GPU) |
+| **Improved training** | Class weights + adversarial augmentation | ~15–25 min (GPU) |
 | **Robustness eval** | Tests on obfuscated text (leet-speak, punctuation, etc.) | ~3 min |
 
 > **Tip:** if you just want to see the results without retraining, the plots and metrics are already visible in the notebook output cells on GitHub.
