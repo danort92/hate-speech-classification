@@ -62,8 +62,8 @@ Each model is evaluated in two configurations:
 |-------------------------|---------|--------------|-----------|----------|
 | TF-IDF + LR — Baseline  | 0.732   | 0.486        | 0.731     | 0.650    |
 | TF-IDF + LR — Improved  | 0.728   | 0.511        | 0.717     | 0.652    |
-| BiLSTM — Baseline        | —       | —            | —         | —        |
-| BiLSTM — Improved        | —       | —            | —         | —        |
+| BiLSTM — Baseline        | 0.699   | 0.432        | 0.687     | 0.606    |
+| BiLSTM — Improved        | 0.692   | 0.456        | 0.666     | 0.604    |
 | DistilBERT — Baseline   | 0.765   | 0.518        | 0.748     | 0.677    |
 | DistilBERT — Improved   | 0.770   | 0.461        | 0.742     | 0.658    |
 | hateBERT — Baseline     | 0.772   | 0.521        | 0.743     | 0.679    |
@@ -73,11 +73,11 @@ Each model is evaluated in two configurations:
 
 | Condition   | LR Baseline | LR Improved | BiLSTM Baseline | BiLSTM Improved | DistilBERT Baseline | DistilBERT Improved | hateBERT Baseline | hateBERT Improved |
 |-------------|-------------|-------------|-----------------|-----------------|---------------------|---------------------|-------------------|-------------------|
-| Clean       | 0.650       | 0.652       | —               | —               | 0.677               | 0.658               | 0.679             | 0.666             |
-| Leet-speak  | 0.445 (−0.205) | 0.460 (−0.192) | —          | —               | 0.365 (−0.312)      | 0.379 (−0.279)      | 0.398 (−0.281)    | 0.382 (−0.297)    |
-| Punctuation | 0.584 (−0.066) | 0.586 (−0.066) | —          | —               | 0.580 (−0.097)      | 0.503 (−0.155)      | 0.607 (−0.072)    | 0.468 (−0.211)    |
-| Char repeat | 0.587 (−0.063) | 0.601 (−0.051) | —          | —               | 0.620 (−0.057)      | 0.635 (−0.023)      | 0.657 (−0.022)    | 0.649 (−0.030)    |
-| Combined    | 0.447 (−0.203) | 0.459 (−0.193) | —          | —               | 0.371 (−0.306)      | 0.337 (−0.321)      | 0.395 (−0.284)    | 0.361 (−0.318)    |
+| Clean       | 0.650       | 0.652       | 0.606           | 0.604           | 0.677               | 0.658               | 0.679             | 0.666             |
+| Leet-speak  | 0.445 (−0.205) | 0.460 (−0.192) | 0.272 (−0.334) | 0.274 (−0.330) | 0.365 (−0.312)      | 0.379 (−0.279)      | 0.398 (−0.281)    | 0.382 (−0.297)    |
+| Punctuation | 0.584 (−0.066) | 0.586 (−0.066) | 0.526 (−0.080) | 0.532 (−0.072) | 0.580 (−0.097)      | 0.503 (−0.155)      | 0.607 (−0.072)    | 0.468 (−0.211)    |
+| Char repeat | 0.587 (−0.063) | 0.601 (−0.051) | 0.540 (−0.066) | 0.540 (−0.064) | 0.620 (−0.057)      | 0.635 (−0.023)      | 0.657 (−0.022)    | 0.649 (−0.030)    |
+| Combined    | 0.447 (−0.203) | 0.459 (−0.193) | 0.266 (−0.340) | 0.274 (−0.330) | 0.371 (−0.306)      | 0.337 (−0.321)      | 0.395 (−0.284)    | 0.361 (−0.318)    |
 
 ## How to Run
 
@@ -137,18 +137,21 @@ Each notebook is split into sequential sections:
 
 ## Key Findings
 
-- **hateBERT baseline is the best overall model** (macro F1 0.679), outperforming DistilBERT (0.677) and TF-IDF + LR (0.650)
+- **hateBERT baseline is the best overall model** (macro F1 0.679), outperforming DistilBERT (0.677), TF-IDF + LR (0.650), and BiLSTM (0.606)
 - **TF-IDF + LR is surprisingly competitive** — only 0.03 F1 behind the transformers, and it trains in seconds with no GPU
-- `offensive` is the hardest class for all models (F1 ~0.49–0.52) due to semantic overlap with both `hate` and `normal`
-- **TF-IDF + LR is the most robust to leet-speak** (drop −0.205 vs −0.281 hateBERT, −0.312 DistilBERT) — character-level n-grams partially survive obfuscation, while WordPiece tokenizers break completely on substituted characters
+- **BiLSTM is the weakest model** (macro F1 0.606) — word-level embeddings trained from scratch on ~15k samples lack the representational power of pre-trained transformers or the lexical coverage of TF-IDF n-grams
+- `offensive` is the hardest class for all models (F1 ~0.43–0.52) due to semantic overlap with both `hate` and `normal`
+- **BiLSTM is the least robust to leet-speak** (drop −0.334) — word-level tokenization treats every obfuscated word as OOV, losing all semantic information
+- **TF-IDF + LR is the most robust to leet-speak** (drop −0.205 vs −0.281 hateBERT, −0.312 DistilBERT, −0.334 BiLSTM) — character-level n-grams partially survive obfuscation, while WordPiece and word-level tokenizers break on substituted characters
 - **hateBERT is more robust than DistilBERT** on all conditions — domain-specific pre-training provides a stronger prior that survives surface-level text manipulation
 - For transformers, the improved models (class weights + adversarial augmentation) **degrade robustness** — they collapse the offensive class (recall ~0.50 → ~0.39) as obfuscated examples teach the model to default to `normal`
 - For TF-IDF + LR, balanced class weights **do improve robustness** across all conditions (+0.01–0.014), showing that the augmentation strategy, not class weights, is the problem with transformer improved models
 - **Threshold tuning on the baseline** (no re-training) boosts hate recall across all models:
 
-| Model | Default Hate Recall | Tuned Hate Recall (≥0.90) | Threshold Used | Hate Precision Cost | Macro F1 Cost |
+| Model | Default Hate Recall | Tuned Hate Recall | Threshold Used | Hate Precision Cost | Macro F1 Cost |
 |-------|--------------------|-----------------------------|----------------|---------------------|---------------|
 | TF-IDF + LR | 0.785 | 0.904 | 0.225 | −0.108 | −0.041 |
+| BiLSTM | 0.749 | 0.889 | 0.150 | −0.129 | — |
 | DistilBERT | 0.860 | 0.904 | 0.225 | −0.046 | −0.020 |
 | hateBERT | 0.828 | 0.904 | 0.150 | −0.098 | −0.035 |
 
