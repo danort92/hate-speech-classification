@@ -164,15 +164,15 @@ Not all improved models use the same strategy:
 | Model | Improved strategy |
 |-------|------------------|
 | **TF-IDF + LR** | `class_weight='balanced'` only — no augmentation (TF-IDF vectors are computed once, augmenting text post-vectorisation would have no effect on the feature space) |
-| **BiLSTM** | `class_weight` (via weighted loss) only — no augmentation (same rationale: the limited 20k-word vocabulary cannot effectively absorb obfuscated variants) |
-| **DistilBERT** | Weighted loss + adversarial augmentation (50 % of hate/offensive training posts obfuscated with `combined_obfuscation`) |
-| **hateBERT** | Same as DistilBERT: weighted loss + adversarial augmentation |
+| **BiLSTM** | Weighted loss + adversarial augmentation (50 % of hate/offensive training posts obfuscated with `combined_obfuscation`) |
+| **DistilBERT** | Same as BiLSTM: weighted loss + adversarial augmentation |
+| **hateBERT** | Same as BiLSTM: weighted loss + adversarial augmentation |
 
-This difference is itself an interesting finding: TF-IDF + LR and BiLSTM use only balanced class weights, while the two transformers add augmentation. Yet it is the transformer improved models that see robustness *degrade*, confirming that the augmentation strategy — not class weighting — is the source of the regression.
+This means TF-IDF + LR is the only model without augmentation — justified because it operates on static feature vectors. The three neural models all share the same improved strategy, making the comparison fair.
 
 ### Why adversarial augmentation does not close the robustness gap
 
-For DistilBERT and hateBERT, the improved model applies `combined_obfuscation` to 50 % of hate/offensive training posts. Despite this, robustness gains are modest or negative. The root cause is a **train/val distribution mismatch in the early stopping criterion**: the validation loss — which determines when training stops and which checkpoint is saved — is computed on the *clean* validation set. The model is therefore selected based on clean-text performance, not robustness. Training sees obfuscated examples, but the checkpoint that gets saved is the one that minimises loss on unperturbed text, which may not be the checkpoint that generalises best to obfuscated inputs.
+For BiLSTM, DistilBERT and hateBERT, the improved model applies `combined_obfuscation` to 50 % of hate/offensive training posts. Despite this, robustness gains are modest or negative. The root cause is a **train/val distribution mismatch in the early stopping criterion**: the validation loss — which determines when training stops and which checkpoint is saved — is computed on the *clean* validation set. The model is therefore selected based on clean-text performance, not robustness. Training sees obfuscated examples, but the checkpoint that gets saved is the one that minimises loss on unperturbed text, which may not be the checkpoint that generalises best to obfuscated inputs.
 
 A stricter fix would evaluate a combined metric (e.g. average of clean and obfuscated F1) at each epoch and use that for early stopping. This was left out of scope to keep the pipeline readable, but is worth noting as a design trade-off.
 
