@@ -18,6 +18,7 @@ Fine-tuning DistilBERT and hateBERT on the HateXplain dataset for 3-class hate s
 ```
 ├── notebooks/
 │   ├── notebook_tfidf_lr.ipynb      # TF-IDF + Logistic Regression (classical ML)
+│   ├── notebook_biLSTM.ipynb        # BiLSTM (deep learning)
 │   ├── notebook_distilbert.ipynb    # full pipeline with DistilBERT
 │   └── notebook_hatebert.ipynb      # full pipeline with hateBERT
 ├── requirements.txt
@@ -40,16 +41,17 @@ Each notebook is fully self-contained — all code (dataset download, preprocess
 
 ## Model
 
-Three models are compared, spanning classical ML to transformers:
+Four models are compared, spanning classical ML to transformers:
 
 | Model | Type | Notes |
 |-------|------|-------|
 | **TF-IDF + LR** | Classical ML | Logistic Regression on TF-IDF features (unigrams + bigrams) |
+| **BiLSTM** | Deep Learning | Bidirectional LSTM with learned word embeddings (128d) |
 | **DistilBERT** | Transformer | `distilbert-base-uncased` — general-purpose, lightweight |
 | **hateBERT** | Transformer | `GroNLP/hateBERT` — BERT re-trained on abusive Reddit content |
 
 Each model is evaluated in two configurations:
-- **Baseline:** standard training (LR: default weights; transformers: AdamW, lr=2e-5, early stopping)
+- **Baseline:** standard training (LR: default weights; BiLSTM/transformers: early stopping on val loss)
 - **Improved:** balanced class weights (LR: `class_weight='balanced'`; transformers: + adversarial augmentation)
 
 ## Results
@@ -60,6 +62,8 @@ Each model is evaluated in two configurations:
 |-------------------------|---------|--------------|-----------|----------|
 | TF-IDF + LR — Baseline  | 0.732   | 0.486        | 0.731     | 0.650    |
 | TF-IDF + LR — Improved  | 0.728   | 0.511        | 0.717     | 0.652    |
+| BiLSTM — Baseline        | —       | —            | —         | —        |
+| BiLSTM — Improved        | —       | —            | —         | —        |
 | DistilBERT — Baseline   | 0.765   | 0.518        | 0.748     | 0.677    |
 | DistilBERT — Improved   | 0.770   | 0.461        | 0.742     | 0.658    |
 | hateBERT — Baseline     | 0.772   | 0.521        | 0.743     | 0.679    |
@@ -67,13 +71,13 @@ Each model is evaluated in two configurations:
 
 ### Robustness to Obfuscation
 
-| Condition   | LR Baseline | LR Improved | DistilBERT Baseline | DistilBERT Improved | hateBERT Baseline | hateBERT Improved |
-|-------------|-------------|-------------|---------------------|---------------------|-------------------|-------------------|
-| Clean       | 0.650       | 0.652       | 0.677               | 0.658               | 0.679             | 0.666             |
-| Leet-speak  | 0.445 (−0.205) | 0.460 (−0.192) | 0.365 (−0.312)  | 0.379 (−0.279)      | 0.398 (−0.281)    | 0.382 (−0.297)    |
-| Punctuation | 0.584 (−0.066) | 0.586 (−0.066) | 0.580 (−0.097)  | 0.503 (−0.155)      | 0.607 (−0.072)    | 0.468 (−0.211)    |
-| Char repeat | 0.587 (−0.063) | 0.601 (−0.051) | 0.620 (−0.057)  | 0.635 (−0.023)      | 0.657 (−0.022)    | 0.649 (−0.030)    |
-| Combined    | 0.447 (−0.203) | 0.459 (−0.193) | 0.371 (−0.306)  | 0.337 (−0.321)      | 0.395 (−0.284)    | 0.361 (−0.318)    |
+| Condition   | LR Baseline | LR Improved | BiLSTM Baseline | BiLSTM Improved | DistilBERT Baseline | DistilBERT Improved | hateBERT Baseline | hateBERT Improved |
+|-------------|-------------|-------------|-----------------|-----------------|---------------------|---------------------|-------------------|-------------------|
+| Clean       | 0.650       | 0.652       | —               | —               | 0.677               | 0.658               | 0.679             | 0.666             |
+| Leet-speak  | 0.445 (−0.205) | 0.460 (−0.192) | —          | —               | 0.365 (−0.312)      | 0.379 (−0.279)      | 0.398 (−0.281)    | 0.382 (−0.297)    |
+| Punctuation | 0.584 (−0.066) | 0.586 (−0.066) | —          | —               | 0.580 (−0.097)      | 0.503 (−0.155)      | 0.607 (−0.072)    | 0.468 (−0.211)    |
+| Char repeat | 0.587 (−0.063) | 0.601 (−0.051) | —          | —               | 0.620 (−0.057)      | 0.635 (−0.023)      | 0.657 (−0.022)    | 0.649 (−0.030)    |
+| Combined    | 0.447 (−0.203) | 0.459 (−0.193) | —          | —               | 0.371 (−0.306)      | 0.337 (−0.321)      | 0.395 (−0.284)    | 0.361 (−0.318)    |
 
 ## How to Run
 
@@ -85,6 +89,7 @@ Each notebook is independent and self-contained. Pick any notebook and run it �
 | Notebook | Model | Estimated time | GPU needed | Open in Colab |
 |----------|-------|----------------|------------|---------------|
 | `notebook_tfidf_lr.ipynb` | TF-IDF + LR | ~2 min | No | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/danort92/hate-speech-classification/blob/main/notebooks/notebook_tfidf_lr.ipynb) |
+| `notebook_biLSTM.ipynb` | BiLSTM | ~10 min | Yes | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/danort92/hate-speech-classification/blob/main/notebooks/notebook_biLSTM.ipynb) |
 | `notebook_distilbert.ipynb` | DistilBERT | ~30 min | Yes | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/danort92/hate-speech-classification/blob/main/notebooks/notebook_distilbert.ipynb) |
 | `notebook_hatebert.ipynb` | hateBERT | ~45 min | Yes | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/danort92/hate-speech-classification/blob/main/notebooks/notebook_hatebert.ipynb) |
 
