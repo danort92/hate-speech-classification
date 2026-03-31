@@ -64,7 +64,7 @@ Each model is evaluated in two configurations:
 | TF-IDF + LR — Improved         | 0.728   | 0.511        | 0.717     | 0.652    |
 | BiLSTM — Baseline              | 0.702   | 0.413        | 0.700     | 0.605    |
 | BiLSTM — Improved              | 0.700   | 0.456        | 0.688     | 0.615    |
-| BiLSTM — Targeted aug.         | 0.623   | 0.367        | 0.642     | 0.544    |
+| BiLSTM — Targeted aug. (4c)    | 0.623   | 0.367        | 0.642     | 0.557    |
 | DistilBERT — Baseline          | 0.765   | 0.518        | 0.748     | 0.677    |
 | DistilBERT — Improved          | 0.770   | 0.461        | 0.742     | 0.658    |
 | hateBERT — Baseline            | 0.772   | 0.521        | 0.743     | 0.679    |
@@ -74,11 +74,15 @@ Each model is evaluated in two configurations:
 
 Obfuscation is applied only to words in the **hate lexicon** (words appearing ≥70 % of the time in hate/offensive posts, min 5 occurrences) — matching realistic adversarial behaviour where users obfuscate slurs, not neutral context words.
 
-| Model                | Clean F1 | Obfuscated F1 | Drop    |
-|----------------------|----------|---------------|---------|
-| Baseline (4a)        | 0.605    | 0.399         | −0.206  |
-| Improved (4b)        | 0.614    | 0.435         | −0.180  |
-| Targeted aug. (4c)   | 0.547    | 0.458         | −0.090  |
+| Model / Config                       | Clean F1 | Obfuscated F1 | Drop    |
+|--------------------------------------|----------|---------------|---------|
+| Baseline (4a — no aug)               | 0.605    | 0.399         | −0.206  |
+| Improved (4b — class weights only)   | 0.614    | 0.435         | −0.180  |
+| Task 4c — AUG_RATE=0.2, N_PASSES=3  | 0.572    | 0.433         | −0.140  |
+| Task 4c — AUG_RATE=0.5, N_PASSES=3  | 0.557    | 0.456         | −0.100  |
+| Task 4c — AUG_RATE=0.5, N_PASSES=10 | 0.547    | 0.458         | −0.090  |
+
+The recommended configuration is **AUG_RATE=0.5, N_PASSES=3**: best Pareto point on the robustness/clean-F1 trade-off. Increasing to N_PASSES=10 gains only 0.002 robustness at a cost of −0.010 clean F1; Vocabulary coverage saturates at N=3 because leet substitutions are a finite character set.
 
 ### Robustness to Obfuscation (TF-IDF + LR, DistilBERT, hateBERT)
 
@@ -159,7 +163,7 @@ Each notebook is split into sequential sections:
 - **hateBERT is more robust than DistilBERT** on all conditions — domain-specific pre-training provides a stronger prior that survives surface-level text manipulation
 - Balanced class weights **improve robustness** for TF-IDF + LR across all conditions (+0.01–0.014)
 - For BiLSTM, class weights give a small clean-text improvement (+0.010 macro F1) with no meaningful robustness change — confirming that robustness is an architectural property, not a training-strategy property
-- **Targeted augmentation (BiLSTM Task 4c) trades clean F1 for robustness** — under hate-lexicon-only obfuscation the drop shrinks from −0.206 (baseline) to −0.090 (targeted), because the model has seen obfuscated variants of the key discriminative words during training. The cost is a lower clean-text F1 (0.547 vs 0.605), as extending the vocabulary with augmented forms dilutes the original embeddings
+- **Targeted augmentation (BiLSTM Task 4c) trades clean F1 for robustness** — the trade-off is governed primarily by `AUG_RATE` (fraction of hate/offensive samples augmented per epoch), not `N_PASSES` (which only affects vocabulary coverage and saturates at N=3). With AUG_RATE=0.5, N=3 the drop shrinks from −0.206 (baseline) to −0.100, but clean F1 falls from 0.605 to 0.557. No configuration dominates the Improved model (class weights only) on both dimensions simultaneously — confirming the bottleneck is architectural
 - **Threshold tuning on the baseline** (no re-training) boosts hate recall across all models:
 
 | Model | Default Hate Recall | Tuned Hate Recall | Threshold Used | Hate Precision Cost | Macro F1 Cost |
@@ -195,11 +199,22 @@ The results reflect inherent architectural differences:
 
 Task 4c tests whether a more principled augmentation — obfuscating only words that are discriminative for hate speech (the **hate lexicon**) and including their variants in the vocabulary — can improve robustness under realistic adversarial conditions.
 
-**Result:** robustness under hate-lexicon-only obfuscation improves substantially. The F1 drop shrinks from −0.206 (baseline) to −0.090, because the model has explicitly seen `n1gg3r`, `h.a.t.e`, and similar variants during training and has added them to the vocabulary.
+**Parameters and their role:**
+- `AUG_RATE` (default 0.5): fraction of hate/offensive samples augmented per epoch. This is the dominant parameter — it directly controls the distribution shift and therefore how much clean F1 is lost.
+- `N_PASSES` (default 3): number of random-seed passes used to populate the extended vocabulary with obfuscated variants. This saturates quickly (leet substitutions are a finite set) and has negligible effect beyond N=3.
 
-**The cost:** clean-text F1 drops from 0.605 to 0.547. Extending the vocabulary with augmented forms and retraining on a mixture of clean and obfuscated samples shifts the embedding space, diluting the representations learned from natural text.
+**Pareto frontier (AUG_RATE=0.5, N_PASSES=3 is the recommended setting):**
 
-**The remaining bottleneck:** if an adversary obfuscates *all* tokens (not just slurs), the BiLSTM still collapses — surrounding context words become `<UNK>` regardless of whether the slur is recognised. This means targeted augmentation is only effective when the evaluation matches the training assumption (hate words obfuscated, context intact). A genuine architectural fix would require character-level or subword representations (fastText, BERT) that survive token-level substitution without mapping to `<UNK>`.
+| AUG_RATE | N_PASSES | Clean F1 | Obf F1 | Drop |
+|----------|----------|----------|--------|------|
+| — | — | 0.605 | 0.399 | −0.206 |
+| 0.2 | 3 | 0.572 | 0.433 | −0.140 |
+| 0.5 | 3 | 0.557 | 0.456 | **−0.100** |
+| 0.5 | 10 | 0.547 | 0.458 | −0.090 |
+
+**The fundamental limit:** no combination of AUG_RATE and N_PASSES beats the simple Improved model (class weights, no augmentation: Clean=0.614, Obf=0.435) on both dimensions simultaneously. Task 4c gains robustness only by sacrificing clean-text accuracy.
+
+**The remaining bottleneck:** if an adversary obfuscates *all* tokens (not just slurs), the BiLSTM still collapses — surrounding context words become `<UNK>` regardless of whether the slur is recognised. A genuine fix requires character-level or subword representations (fastText, BERT) that survive token-level substitution without mapping to `<UNK>`.
 
 ### Overfitting: why validation loss rises after epoch 1–2
 
