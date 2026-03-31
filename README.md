@@ -70,15 +70,15 @@ Each model is evaluated in two configurations:
 | hateBERT — Baseline            | 0.772   | 0.521        | 0.743     | 0.679    |
 | hateBERT — Improved            | 0.764   | 0.479        | 0.754     | 0.666    |
 
-### Robustness to Obfuscation (BiLSTM)
+### Robustness to Targeted Obfuscation (BiLSTM)
 
-| Condition   | Baseline | Improved | Targeted aug. |
-|-------------|----------|----------|---------------|
-| Clean       | 0.605    | 0.615    | 0.544         |
-| Leet-speak  | 0.293 (−0.312) | 0.252 (−0.363) | 0.214 (−0.330) |
-| Punctuation | 0.516 (−0.089) | 0.528 (−0.087) | 0.387 (−0.157) |
-| Char repeat | 0.528 (−0.077) | 0.537 (−0.078) | 0.382 (−0.162) |
-| Combined    | 0.277 (−0.328) | 0.250 (−0.365) | 0.209 (−0.335) |
+Obfuscation is applied only to words in the **hate lexicon** (words appearing ≥70 % of the time in hate/offensive posts, min 5 occurrences) — matching realistic adversarial behaviour where users obfuscate slurs, not neutral context words.
+
+| Model                | Clean F1 | Obfuscated F1 | Drop    |
+|----------------------|----------|---------------|---------|
+| Baseline (4a)        | 0.605    | 0.399         | −0.206  |
+| Improved (4b)        | 0.614    | 0.435         | −0.180  |
+| Targeted aug. (4c)   | 0.547    | 0.458         | −0.090  |
 
 ### Robustness to Obfuscation (TF-IDF + LR, DistilBERT, hateBERT)
 
@@ -159,7 +159,7 @@ Each notebook is split into sequential sections:
 - **hateBERT is more robust than DistilBERT** on all conditions — domain-specific pre-training provides a stronger prior that survives surface-level text manipulation
 - Balanced class weights **improve robustness** for TF-IDF + LR across all conditions (+0.01–0.014)
 - For BiLSTM, class weights give a small clean-text improvement (+0.010 macro F1) with no meaningful robustness change — confirming that robustness is an architectural property, not a training-strategy property
-- **Targeted augmentation (BiLSTM Task 4c) does not improve robustness** — it degrades both clean-text F1 (−0.061) and robustness across all conditions. The robustness test obfuscates *all* tokens, not just hate words, so even though hate word variants are now in the vocabulary, the surrounding context words still become `<UNK>`, leaving the model without enough signal to classify correctly
+- **Targeted augmentation (BiLSTM Task 4c) trades clean F1 for robustness** — under hate-lexicon-only obfuscation the drop shrinks from −0.206 (baseline) to −0.090 (targeted), because the model has seen obfuscated variants of the key discriminative words during training. The cost is a lower clean-text F1 (0.547 vs 0.605), as extending the vocabulary with augmented forms dilutes the original embeddings
 - **Threshold tuning on the baseline** (no re-training) boosts hate recall across all models:
 
 | Model | Default Hate Recall | Tuned Hate Recall | Threshold Used | Hate Precision Cost | Macro F1 Cost |
@@ -191,13 +191,15 @@ The results reflect inherent architectural differences:
 - **TF-IDF + LR** is the most robust because character-level n-grams partially survive substitution
 - **BERT models** fall in between — WordPiece decomposes unknown tokens into subword pieces rather than a single `<UNK>`, preserving partial signal
 
-### Why targeted augmentation (Task 4c) does not help BiLSTM
+### What targeted augmentation (Task 4c) achieves and what it costs
 
-Task 4c tests whether a more principled augmentation — obfuscating only words that are discriminative for hate speech, and including their obfuscated forms in the vocabulary — can improve robustness. It does not: both clean-text F1 and robustness degrade.
+Task 4c tests whether a more principled augmentation — obfuscating only words that are discriminative for hate speech (the **hate lexicon**) and including their variants in the vocabulary — can improve robustness under realistic adversarial conditions.
 
-The root cause is that the robustness test applies obfuscation to **all** tokens in a post, not just hate words. Even if the model now recognises `n1gg3r` as a hate indicator, words like `reminder`, `everyone`, `bellamy` (surrounding context) still become `<UNK>`. With most context lost, the model cannot distinguish hate from normal regardless of whether the key slur is recognised.
+**Result:** robustness under hate-lexicon-only obfuscation improves substantially. The F1 drop shrinks from −0.206 (baseline) to −0.090, because the model has explicitly seen `n1gg3r`, `h.a.t.e`, and similar variants during training and has added them to the vocabulary.
 
-This confirms that for word-level architectures the bottleneck under obfuscation is **context loss**, not hate-word recognition. A genuine fix would require character-level or subword representations (fastText, BERT) that survive token-level substitution without collapsing to `<UNK>`.
+**The cost:** clean-text F1 drops from 0.605 to 0.547. Extending the vocabulary with augmented forms and retraining on a mixture of clean and obfuscated samples shifts the embedding space, diluting the representations learned from natural text.
+
+**The remaining bottleneck:** if an adversary obfuscates *all* tokens (not just slurs), the BiLSTM still collapses — surrounding context words become `<UNK>` regardless of whether the slur is recognised. This means targeted augmentation is only effective when the evaluation matches the training assumption (hate words obfuscated, context intact). A genuine architectural fix would require character-level or subword representations (fastText, BERT) that survive token-level substitution without mapping to `<UNK>`.
 
 ### Overfitting: why validation loss rises after epoch 1–2
 
