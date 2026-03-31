@@ -63,8 +63,8 @@ Each model is evaluated in two configurations:
 | TF-IDF + LR — Baseline         | 0.732   | 0.486        | 0.731     | 0.650    |
 | TF-IDF + LR — Improved         | 0.728   | 0.511        | 0.717     | 0.652    |
 | BiLSTM — Baseline              | 0.702   | 0.413        | 0.700     | 0.605    |
-| BiLSTM — Improved              | 0.700   | 0.456        | 0.688     | 0.615    |
-| BiLSTM — Targeted aug. (4c)    | 0.623   | 0.367        | 0.642     | 0.557    |
+| BiLSTM — Improved              | 0.691   | 0.500        | 0.653     | 0.614    |
+| BiLSTM — Targeted aug. (4c)    | 0.657   | 0.371        | 0.642     | 0.557    |
 | DistilBERT — Baseline          | 0.765   | 0.518        | 0.748     | 0.677    |
 | DistilBERT — Improved          | 0.770   | 0.461        | 0.742     | 0.658    |
 | hateBERT — Baseline            | 0.772   | 0.521        | 0.743     | 0.679    |
@@ -79,7 +79,7 @@ Obfuscation is applied only to words in the **hate lexicon** (words appearing �
 | Baseline (4a — no aug)               | 0.605    | 0.399         | −0.206  |
 | Improved (4b — class weights only)   | 0.614    | 0.435         | −0.180  |
 | Task 4c — AUG_RATE=0.2, N_PASSES=3  | 0.572    | 0.433         | −0.140  |
-| Task 4c — AUG_RATE=0.5, N_PASSES=3  | 0.557    | 0.456         | −0.100  |
+| Task 4c — AUG_RATE=0.5, N_PASSES=3  | 0.572    | 0.433         | −0.140  |
 | Task 4c — AUG_RATE=0.5, N_PASSES=10 | 0.547    | 0.458         | −0.090  |
 
 The recommended configuration is **AUG_RATE=0.5, N_PASSES=3**: best Pareto point on the robustness/clean-F1 trade-off. Increasing to N_PASSES=10 gains only 0.002 robustness at a cost of −0.010 clean F1; Vocabulary coverage saturates at N=3 because leet substitutions are a finite character set.
@@ -162,14 +162,14 @@ Each notebook is split into sequential sections:
 - **TF-IDF + LR is the most robust to leet-speak** (drop −0.205 vs −0.281 hateBERT, −0.312 DistilBERT, −0.334 BiLSTM) — character-level n-grams partially survive obfuscation, while WordPiece and word-level tokenizers break on substituted characters
 - **hateBERT is more robust than DistilBERT** on all conditions — domain-specific pre-training provides a stronger prior that survives surface-level text manipulation
 - Balanced class weights **improve robustness** for TF-IDF + LR across all conditions (+0.01–0.014)
-- For BiLSTM, class weights give a small clean-text improvement (+0.010 macro F1) with no meaningful robustness change — confirming that robustness is an architectural property, not a training-strategy property
-- **Targeted augmentation (BiLSTM Task 4c) trades clean F1 for robustness** — the trade-off is governed primarily by `AUG_RATE` (fraction of hate/offensive samples augmented per epoch), not `N_PASSES` (which only affects vocabulary coverage and saturates at N=3). With AUG_RATE=0.5, N=3 the drop shrinks from −0.206 (baseline) to −0.100, but clean F1 falls from 0.605 to 0.557. No configuration dominates the Improved model (class weights only) on both dimensions simultaneously — confirming the bottleneck is architectural
+- For BiLSTM, class weights give a small clean-text improvement (+0.009 macro F1) with no meaningful robustness change — confirming that robustness is an architectural property, not a training-strategy property
+- **Targeted augmentation (BiLSTM Task 4c) trades clean F1 for robustness** — the trade-off is governed primarily by `AUG_RATE` (fraction of hate/offensive samples augmented per epoch), not `N_PASSES` (which only affects vocabulary coverage and saturates at N=3). With AUG_RATE=0.5, N=3 the drop shrinks from −0.206 (baseline) to −0.140, but clean F1 falls from 0.605 to 0.557. No configuration dominates the Improved model (class weights only) on both dimensions simultaneously — confirming the bottleneck is architectural
 - **Threshold tuning on the baseline** (no re-training) boosts hate recall across all models:
 
 | Model | Default Hate Recall | Tuned Hate Recall | Threshold Used | Hate Precision Cost | Macro F1 Cost |
 |-------|--------------------|-----------------------------|----------------|---------------------|---------------|
 | TF-IDF + LR | 0.785 | 0.904 | 0.225 | −0.108 | −0.041 |
-| BiLSTM | 0.749 | 0.889 | 0.150 | −0.129 | — |
+| BiLSTM | 0.721 | 0.827 | 0.150 | −0.114 | −0.036 |
 | DistilBERT | 0.860 | 0.904 | 0.225 | −0.046 | −0.020 |
 | hateBERT | 0.828 | 0.904 | 0.150 | −0.098 | −0.035 |
 
