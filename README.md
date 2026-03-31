@@ -52,7 +52,7 @@ Four models are compared, spanning classical ML to transformers:
 
 Each model is evaluated in two configurations:
 - **Baseline:** standard training (LR: default weights; BiLSTM/transformers: early stopping on val loss)
-- **Improved:** balanced class weights (LR: `class_weight='balanced'`; transformers: + adversarial augmentation)
+- **Improved:** balanced class weights (`class_weight='balanced'` for LR; weighted loss for neural models)
 
 ## Results
 
@@ -130,7 +130,7 @@ Each notebook is split into sequential sections:
 | **Download & EDA** | Downloads HateXplain, exploratory analysis with plots | ~1 min |
 | **Preprocessing** | Text cleaning, tokenization, DataLoader creation | ~1 min |
 | **Baseline training** | Fine-tunes the model (early stopping) | ~10–20 min (GPU) |
-| **Improved training** | Class weights + adversarial augmentation | ~15–25 min (GPU) |
+| **Improved training** | Balanced class weights | ~15–25 min (GPU) |
 | **Robustness eval** | Tests on obfuscated text (leet-speak, punctuation, etc.) | ~3 min |
 
 > **Tip:** if you just want to see the results without retraining, the plots and metrics are already visible in the notebook output cells on GitHub.
@@ -144,8 +144,7 @@ Each notebook is split into sequential sections:
 - **BiLSTM is the least robust to leet-speak** (drop −0.334) — word-level tokenization treats every obfuscated word as OOV, losing all semantic information
 - **TF-IDF + LR is the most robust to leet-speak** (drop −0.205 vs −0.281 hateBERT, −0.312 DistilBERT, −0.334 BiLSTM) — character-level n-grams partially survive obfuscation, while WordPiece and word-level tokenizers break on substituted characters
 - **hateBERT is more robust than DistilBERT** on all conditions — domain-specific pre-training provides a stronger prior that survives surface-level text manipulation
-- For transformers, the improved models (class weights + adversarial augmentation) **degrade robustness** — they collapse the offensive class (recall ~0.50 → ~0.39) as obfuscated examples teach the model to default to `normal`
-- For TF-IDF + LR, balanced class weights **do improve robustness** across all conditions (+0.01–0.014), showing that the augmentation strategy, not class weights, is the problem with transformer improved models
+- Balanced class weights **improve robustness** for TF-IDF + LR across all conditions (+0.01–0.014); results for neural models with class weights only are pending retraining
 - **Threshold tuning on the baseline** (no re-training) boosts hate recall across all models:
 
 | Model | Default Hate Recall | Tuned Hate Recall | Threshold Used | Hate Precision Cost | Macro F1 Cost |
@@ -159,26 +158,23 @@ Each notebook is split into sequential sections:
 
 ### What each "Improved" model actually changes
 
-Not all improved models use the same strategy:
+All models use the same improved strategy: **balanced class weights** to address the class imbalance in HateXplain.
 
 | Model | Improved strategy |
 |-------|------------------|
-| **TF-IDF + LR** | `class_weight='balanced'` only — no augmentation (TF-IDF vectors are computed once, augmenting text post-vectorisation would have no effect on the feature space) |
-| **BiLSTM** | Weighted loss + adversarial augmentation (50 % of hate/offensive training posts obfuscated with `combined_obfuscation`) |
-| **DistilBERT** | Same as BiLSTM: weighted loss + adversarial augmentation |
-| **hateBERT** | Same as BiLSTM: weighted loss + adversarial augmentation |
+| **TF-IDF + LR** | `class_weight='balanced'` |
+| **BiLSTM** | Weighted loss (`CrossEntropyLoss` with balanced class weights) |
+| **DistilBERT** | Weighted loss (`CrossEntropyLoss` with balanced class weights) |
+| **hateBERT** | Weighted loss (`CrossEntropyLoss` with balanced class weights) |
 
-This means TF-IDF + LR is the only model without augmentation — justified because it operates on static feature vectors. The three neural models all share the same improved strategy, making the comparison fair.
+### Robustness evaluation
 
-### Why adversarial augmentation does not close the robustness gap
+The robustness evaluation is **diagnostic**: models are trained on clean text and tested on artificially obfuscated variants (leet-speak, punctuation insertion, character repetition). No training mechanism is designed to improve robustness — the evaluation measures how fragile each architecture is under surface-level text perturbation.
 
-For BiLSTM, DistilBERT and hateBERT, the improved model applies `combined_obfuscation` to 50 % of hate/offensive training posts. Despite this, robustness gains are modest or negative. The root cause is a **train/val distribution mismatch in the early stopping criterion**: the validation loss — which determines when training stops and which checkpoint is saved — is computed on the *clean* validation set. The model is therefore selected based on clean-text performance, not robustness. Training sees obfuscated examples, but the checkpoint that gets saved is the one that minimises loss on unperturbed text, which may not be the checkpoint that generalises best to obfuscated inputs.
-
-A stricter fix would evaluate a combined metric (e.g. average of clean and obfuscated F1) at each epoch and use that for early stopping. This was left out of scope to keep the pipeline readable, but is worth noting as a design trade-off.
-
-### BiLSTM vocabulary coverage under obfuscation
-
-The BiLSTM notebook includes a vocabulary coverage analysis (section 5d) that quantifies why word-level models are the least robust to obfuscation. The model's fixed 20k-word vocabulary, built from clean training data, maps every unseen obfuscated variant (e.g. "h4t3", "h.a.t.e") to a single `<UNK>` token — losing all semantic information. The OOV rate rises sharply under leet-speak and combined obfuscation, and correlates directly with the F1 drop. This contrasts with TF-IDF (which distributes information across many features) and BERT's WordPiece (which at least decomposes unknown words into sub-tokens).
+The results reflect inherent architectural differences:
+- **BiLSTM** collapses under leet-speak (−0.33) because its fixed word-level vocabulary maps every obfuscated token to `<UNK>`, losing all semantic information
+- **TF-IDF + LR** is the most robust because character-level n-grams partially survive substitution
+- **BERT models** fall in between — WordPiece decomposes unknown tokens into subword pieces rather than a single `<UNK>`, preserving partial signal
 
 ### Overfitting: why validation loss rises after epoch 1–2
 
