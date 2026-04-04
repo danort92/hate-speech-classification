@@ -20,8 +20,7 @@ Fine-tuning DistilBERT and hateBERT on the HateXplain dataset for 3-class hate s
 │   ├── notebook_tfidf_lr.ipynb      # TF-IDF + Logistic Regression (classical ML)
 │   ├── notebook_biLSTM.ipynb        # BiLSTM (deep learning)
 │   ├── notebook_distilbert.ipynb    # full pipeline with DistilBERT
-│   ├── notebook_hatebert.ipynb      # full pipeline with hateBERT
-│   └── notebook_transfer_learning.ipynb  # hateBERT frozen encoder (feature extraction)
+│   └── notebook_hatebert.ipynb      # full pipeline with hateBERT
 ├── requirements.txt
 └── README.md
 ```
@@ -123,7 +122,6 @@ Each notebook is independent and self-contained. Pick any notebook and run it �
 | `notebook_biLSTM.ipynb` | BiLSTM | ~10 min | Yes | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/danort92/hate-speech-classification/blob/main/notebooks/notebook_biLSTM.ipynb) |
 | `notebook_distilbert.ipynb` | DistilBERT | ~30 min | Yes | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/danort92/hate-speech-classification/blob/main/notebooks/notebook_distilbert.ipynb) |
 | `notebook_hatebert.ipynb` | hateBERT | ~45 min | Yes | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/danort92/hate-speech-classification/blob/main/notebooks/notebook_hatebert.ipynb) |
-| `notebook_transfer_learning.ipynb` | hateBERT (frozen) | ~10 min | Yes | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/danort92/hate-speech-classification/blob/main/notebooks/notebook_transfer_learning.ipynb) |
 
 ### Option 1 — Google Colab (recommended)
 
