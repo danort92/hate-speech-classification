@@ -64,7 +64,7 @@ Each model is evaluated in two configurations:
 | TF-IDF + LR — Improved         | 0.728   | 0.511        | 0.717     | 0.652    |
 | BiLSTM — Baseline              | 0.702   | 0.413        | 0.700     | 0.605    |
 | BiLSTM — Improved              | 0.691   | 0.500        | 0.653     | 0.614    |
-| BiLSTM — Targeted aug. (4c)    | 0.657   | 0.371        | 0.642     | 0.577    |
+| BiLSTM — Targeted aug. (4c)    | 0.683   | 0.409        | 0.638     | 0.577    |
 | DistilBERT — Baseline          | 0.766   | 0.506        | 0.750     | 0.674    |
 | DistilBERT — Improved          | 0.767   | 0.553        | 0.714     | 0.678    |
 | DistilBERT — Targeted aug.(4c) | 0.765   | 0.476        | 0.749     | 0.664    |
