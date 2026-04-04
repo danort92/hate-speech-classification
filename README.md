@@ -64,13 +64,13 @@ Each model is evaluated in two configurations:
 | TF-IDF + LR — Improved         | 0.728   | 0.511        | 0.717     | 0.652    |
 | BiLSTM — Baseline              | 0.702   | 0.413        | 0.700     | 0.605    |
 | BiLSTM — Improved              | 0.691   | 0.500        | 0.653     | 0.614    |
-| BiLSTM — Targeted aug. (4c)    | 0.657   | 0.371        | 0.642     | 0.557    |
-| DistilBERT — Baseline          | 0.757   | 0.483        | 0.746     | 0.662    |
-| DistilBERT — Improved          | 0.738   | 0.545        | 0.681     | 0.654    |
-| DistilBERT — Targeted aug.(4c) | 0.760   | 0.467        | 0.753     | 0.660    |
-| hateBERT — Baseline            | 0.771   | 0.516        | 0.751     | 0.680    |
-| hateBERT — Improved            | 0.773   | 0.527        | 0.732     | 0.677    |
-| hateBERT — Targeted aug. (4c)  | 0.772   | 0.474        | 0.747     | 0.664    |
+| BiLSTM — Targeted aug. (4c)    | 0.657   | 0.371        | 0.642     | 0.577    |
+| DistilBERT — Baseline          | 0.766   | 0.506        | 0.750     | 0.674    |
+| DistilBERT — Improved          | 0.767   | 0.553        | 0.714     | 0.678    |
+| DistilBERT — Targeted aug.(4c) | 0.765   | 0.476        | 0.749     | 0.664    |
+| hateBERT — Baseline            | 0.772   | 0.512        | 0.755     | 0.680    |
+| hateBERT — Improved            | 0.771   | 0.543        | 0.732     | 0.682    |
+| hateBERT — Targeted aug. (4c)  | 0.769   | 0.486        | 0.762     | 0.672    |
 
 ### Robustness to Targeted Obfuscation (BiLSTM)
 
@@ -81,21 +81,21 @@ Obfuscation is applied only to words in the **hate lexicon** (words appearing �
 | Baseline (4a — no aug)               | 0.605    | 0.399         | −0.206  |
 | Improved (4b — class weights only)   | 0.614    | 0.435         | −0.180  |
 | Task 4c — AUG_RATE=0.2, N_PASSES=3  | 0.572    | 0.433         | −0.140  |
-| Task 4c — AUG_RATE=0.5, N_PASSES=3  | 0.572    | 0.433         | −0.140  |
+| Task 4c — AUG_RATE=0.5, N_PASSES=3  | 0.577    | 0.498         | −0.079  |
 | Task 4c — AUG_RATE=0.5, N_PASSES=10 | 0.547    | 0.458         | −0.090  |
 
-The recommended configuration is **AUG_RATE=0.5, N_PASSES=3**: best Pareto point on the robustness/clean-F1 trade-off. Increasing to N_PASSES=10 gains only 0.002 robustness at a cost of −0.010 clean F1; Vocabulary coverage saturates at N=3 because leet substitutions are a finite character set.
+The recommended configuration is **AUG_RATE=0.5, N_PASSES=3**: best Pareto point on the robustness/clean-F1 trade-off. N_PASSES=10 does not improve over N=3 — vocabulary coverage saturates because leet substitutions are a finite character set.
 
 ### Robustness to Targeted Obfuscation (DistilBERT and hateBERT)
 
 | Model / Config                        | Clean F1 | Obfuscated F1 | Drop    |
 |---------------------------------------|----------|---------------|---------|
-| DistilBERT — Baseline (4a)            | 0.662    | 0.529         | −0.133  |
-| DistilBERT — Improved (4b)            | 0.654    | 0.519         | −0.135  |
-| DistilBERT — Targeted aug. (4c)       | 0.660    | 0.570         | −0.090  |
-| hateBERT — Baseline (4a)              | 0.680    | 0.559         | −0.120  |
-| hateBERT — Improved (4b)              | 0.677    | 0.566         | −0.111  |
-| hateBERT — Targeted aug. (4c)         | 0.664    | 0.589         | **−0.075** |
+| DistilBERT — Baseline (4a)            | 0.674    | 0.514         | −0.160  |
+| DistilBERT — Improved (4b)            | 0.678    | 0.549         | −0.129  |
+| DistilBERT — Targeted aug. (4c)       | 0.664    | 0.576         | −0.088  |
+| hateBERT — Baseline (4a)              | 0.680    | 0.514         | −0.166  |
+| hateBERT — Improved (4b)              | 0.682    | 0.580         | −0.102  |
+| hateBERT — Targeted aug. (4c)         | 0.672    | 0.599         | **−0.073** |
 
 ### Robustness to Full Obfuscation (TF-IDF + LR — reference)
 
@@ -167,23 +167,23 @@ Each notebook is split into sequential sections:
 
 ## Key Findings
 
-- **hateBERT baseline is the best overall model** (macro F1 0.680), outperforming DistilBERT (0.662), TF-IDF + LR (0.650), and BiLSTM (0.605)
+- **hateBERT baseline is the best overall model** (macro F1 0.680), outperforming DistilBERT (0.674), TF-IDF + LR (0.650), and BiLSTM (0.605)
 - **TF-IDF + LR is surprisingly competitive** — only 0.030 F1 behind hateBERT, and it trains in seconds with no GPU
 - **BiLSTM is the weakest model** (macro F1 0.605) — word-level embeddings trained from scratch on ~15k samples lack the representational power of pre-trained transformers or the lexical coverage of TF-IDF n-grams
 - `offensive` is the hardest class for all models (F1 ~0.41–0.53) due to semantic overlap with both `hate` and `normal`
 - **BiLSTM is the least robust** (drop −0.206 under targeted obfuscation) — word-level tokenization maps every obfuscated token to `<UNK>`, destroying the signal of discriminative words entirely
-- **hateBERT is the most robust under targeted obfuscation** (drop −0.120 baseline, −0.075 with Task 4c) — domain-specific pre-training on abusive text provides a stronger prior for recognising obfuscated slurs via WordPiece subword decomposition
+- **hateBERT achieves the best robustness with Task 4c** (drop −0.073), recovering best from obfuscation; at baseline both BERT models show similar fragility (DistilBERT −0.160, hateBERT −0.166) — domain-specific pre-training provides a stronger prior that augmentation can leverage more effectively
 - **Targeted augmentation (Task 4c) behaves differently across architectures**: for BiLSTM it trades clean F1 for robustness (OOV problem partially mitigated but at distribution-shift cost); for DistilBERT and hateBERT it improves robustness with negligible clean F1 change, because WordPiece already handles obfuscated tokens without collapsing to `<UNK>`
 - For BiLSTM, class weights give a small clean-text improvement (+0.009 macro F1) with no meaningful robustness change — confirming that robustness is an architectural property, not a training-strategy property
-- For BERT models, class weights shift offensive F1 up (+0.06 DistilBERT, +0.01 hateBERT) but the macro F1 effect is small and inconsistent, reflecting the already-balanced pre-training prior
+- For BERT models, class weights shift offensive F1 up (+0.05 DistilBERT, +0.03 hateBERT) but the macro F1 effect is small and inconsistent, reflecting the already-balanced pre-training prior
 - **Threshold tuning on the baseline** (no re-training) boosts hate recall across all models:
 
 | Model | Default Hate Recall | Tuned Hate Recall | Threshold Used | Hate Precision Cost | Macro F1 Cost |
 |-------|--------------------|-----------------------------|----------------|---------------------|---------------|
 | TF-IDF + LR | 0.785 | 0.904 | 0.225 | −0.108 | −0.041 |
 | BiLSTM | 0.721 | 0.827 | 0.150 | −0.114 | −0.036 |
-| DistilBERT | 0.833 | 0.906 | 0.225 | −0.046 | −0.010 |
-| hateBERT | 0.845 | 0.902 | 0.150 | −0.093 | −0.047 |
+| DistilBERT | 0.825 | 0.904 | 0.150 | −0.081 | −0.025 |
+| hateBERT | 0.803 | 0.879 | 0.150 | −0.098 | −0.040 |
 
 ## Analysis & Limitations
 
@@ -206,13 +206,13 @@ The results reflect inherent architectural differences (targeted obfuscation, ha
 
 | Model | Baseline drop | Task 4c drop |
 |-------|--------------|-------------|
-| BiLSTM | −0.206 | −0.140 |
-| DistilBERT | −0.133 | −0.090 |
-| hateBERT | −0.120 | **−0.075** |
+| BiLSTM | −0.206 | −0.079 |
+| DistilBERT | −0.160 | −0.088 |
+| hateBERT | −0.166 | **−0.073** |
 
 - **BiLSTM** is the most fragile: its fixed word-level vocabulary maps every obfuscated token to `<UNK>`, losing the entire signal of discriminative hate words
 - **BERT models** are more robust: WordPiece decomposes `n1gg3r` into subword pieces rather than a single `<UNK>`, preserving partial semantic signal through the attention layers
-- **hateBERT > DistilBERT** on robustness — domain-specific pre-training on abusive Reddit content provides a stronger prior for recognising hate-loaded subword sequences
+- At baseline, both BERT models show similar fragility (DistilBERT −0.160, hateBERT −0.166); with Task 4c, **hateBERT recovers best** (−0.073 vs −0.088 for DistilBERT) — domain-specific pre-training provides a stronger prior that targeted augmentation can exploit more effectively
 
 ### What targeted augmentation (Task 4c) achieves and what it costs
 
@@ -228,16 +228,16 @@ Task 4c tests whether a more principled augmentation — obfuscating only words 
 |----------|----------|----------|--------|------|
 | — | — | 0.605 | 0.399 | −0.206 |
 | 0.2 | 3 | 0.572 | 0.433 | −0.140 |
-| 0.5 | 3 | 0.557 | 0.456 | **−0.100** |
+| 0.5 | 3 | 0.577 | 0.498 | **−0.079** |
 | 0.5 | 10 | 0.547 | 0.458 | −0.090 |
 
 **Architecture determines the trade-off:**
 
 | Architecture | Task 4c effect on clean F1 | Task 4c effect on robustness |
 |---|---|---|
-| BiLSTM | −0.048 (0.605→0.557) | +0.066 drop reduction |
-| DistilBERT | −0.002 (0.662→0.660) | +0.043 drop reduction |
-| hateBERT | −0.016 (0.680→0.664) | +0.045 drop reduction |
+| BiLSTM | −0.028 (0.605→0.577) | +0.127 drop reduction |
+| DistilBERT | −0.010 (0.674→0.664) | +0.072 drop reduction |
+| hateBERT | −0.008 (0.680→0.672) | +0.093 drop reduction |
 
 For BiLSTM, Task 4c adds obfuscated forms to the vocabulary, but the surrounding context words still become `<UNK>` — so robustness only partially improves and clean F1 suffers. For BERT models, vocabulary extension is not needed (WordPiece handles it), so targeted augmentation during fine-tuning improves robustness almost for free.
 
